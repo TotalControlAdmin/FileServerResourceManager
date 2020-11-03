@@ -1,0 +1,10 @@
+{
+  "MinimumTcAdminVersion": "2.0.159.11",
+  "SqlProfiles": {
+    "InstallSql": "install.cs",
+    "UpdateSql": "update.cs",
+    "UninstallSql": "uninstall.cs"
+  },
+  "Dll": "",
+  "Dependencies": []
+}
