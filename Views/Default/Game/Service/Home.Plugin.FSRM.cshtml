@@ -1,0 +1,38 @@
+@{
+var service = TCAdmin.GameHosting.SDK.Objects.Service.GetSelectedService();
+var adddisk = service.Variables["FSRM_DiskUsage"] != null & service.Variables["FSRM_DiskQuota"] != null && service.Variables["FSRM_DiskUsage"].ToString() != string.Empty & service.Variables["FSRM_DiskQuota"].ToString() != string.Empty;
+double diskusage = 0;
+double diskquota = 0;
+double diskpct = 0;
+if(adddisk) {
+  diskusage = Double.Parse(service.Variables["FSRM_DiskUsage"].ToString()) * 1024 * 1024 * 1024;
+  diskquota = Double.Parse(service.Variables["FSRM_DiskQuota"].ToString()) * 1024 * 1024 * 1024;
+  diskpct = Math.Round((diskusage/diskquota)*100, 0);
+}
+}
+
+@if(adddisk){
+<script>
+$(function() {
+  let sw = $("#auto-refresh-switch");
+  if(sw.length) {
+    let before = sw.parent().parent().prev().prev();
+    before.after('<dt><label>Disk</label></dt><dd><div id="DiskBar"></div></dd>');
+
+    let disk = $("#DiskBar").kendoProgressBar({
+                type: "value",
+                max: 100,
+                animation: false
+            }).data("kendoProgressBar");
+
+    disk.value(@diskpct);
+    disk.progressStatus.text("{0}% ({1})".format(@diskpct, getFileSizeFromBytes(@diskusage)));
+
+    let detail = $("#main > .detail");
+    if (detail.isChildOverflowing(disk)) {
+      disk.width(detail.width())
+    }
+  }
+});
+</script>
+}

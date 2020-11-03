@@ -1,0 +1,67 @@
+@{
+var game = TCAdmin.GameHosting.SDK.Objects.Game.GetSelectedGame();
+}
+@if(game != null) {
+    <script>
+
+        function AddFSRMFields() {
+        //form fields with this format are automatically saved to Game.CustomFields: CustomField:__MODULENAME:FIELDNAME
+        let slotstr = $("#aspxcontent").contents().find("#ContentPlaceHolderMain_GameDetails1_NumericTextBoxDefaultSlots_wrapper, #ctl00_ContentPlaceHolderMain_GameDetails1_NumericTextBoxDefaultSlots_wrapper").parent().parent();
+        if (slotstr.length){
+            slotstr.after(`
+<tr>
+  <td class="FieldName"><span class="Label">Default Disk Quota (GB):</span></td>
+  <td class="FieldValue"><span class="riSingle RadInput RadInput_Default" style="width:100px;"><input type="number" onfocus="this.select()" class="riTextBox riEnabled TextBox" name="CustomField:__FSRM:DEFAULT_QUOTA" id="CustomField_FSRM_DEFAULT_QUOTA" style="width:100%" value="${__FSRM_DEFAULT_QUOTA}" /></span></td>
+</tr>
+<tr>
+  <td class="FieldName">
+  </td>
+  <td class="FieldValue">
+    <input type="hidden" name="CustomField:__FSRM:APPLY_QUOTA_TO_ALL_SERVICES" id="CustomField_FSRM_APPLY_QUOTA_TO_ALL_SERVICES_Hidden" value="${__FSRM_APPLY_QUOTA_TO_ALL_SERVICES}" />
+    <span class="CheckBox"><input type="checkbox" id="CustomField_FSRM_APPLY_QUOTA_TO_ALL_SERVICES" ${__FSRM_APPLY_QUOTA_TO_ALL_SERVICES !="false"?'checked="checked"':""}><label for="CustomField_FSRM_APPLY_QUOTA_TO_ALL_SERVICES">Apply default disk quota if service doesn't have one</label></span>
+  </td>
+</tr>
+<style>
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+}
+</style>`);
+
+            //Remember value on change so we can restore it if needed.
+            $("#aspxcontent").contents().find('#CustomField_FSRM_DEFAULT_QUOTA').change(function (e) {
+                __FSRM_DEFAULT_QUOTA = this.value;
+            });
+            $("#aspxcontent").contents().find('#CustomField_FSRM_APPLY_QUOTA_TO_ALL_SERVICES').change(function (e) {
+                __FSRM_APPLY_QUOTA_TO_ALL_SERVICES = this.checked ? "true" : "false";
+                $("#aspxcontent").contents().find("#CustomField_FSRM_APPLY_QUOTA_TO_ALL_SERVICES_Hidden").val(this.checked);
+            });
+        }
+        };
+
+        $(function () {
+            if (!window.__FSRM_DEFAULT_QUOTA) {
+                __FSRM_DEFAULT_QUOTA = @(game.CustomFields["__FSRM:DEFAULT_QUOTA"]!=null?game.CustomFields["__FSRM:DEFAULT_QUOTA"]:0);
+                __FSRM_APPLY_QUOTA_TO_ALL_SERVICES = "@(game.CustomFields["__FSRM:APPLY_QUOTA_TO_ALL_SERVICES"] !=null?game.CustomFields["__FSRM:APPLY_QUOTA_TO_ALL_SERVICES"]:"false")";
+            }
+
+            $("#aspxcontent").on('load', function () {
+                AddFSRMFields();
+
+                //Create the fields again if they are removed by an ajax update.
+                $("#aspxcontent").contents().find('body').bind("DOMSubtreeModified", function () {
+                    if ($("#aspxcontent").contents().find('#CustomField_FSRM_DEFAULT_QUOTA').length==0) {
+                        AddFSRMFields();
+                    }
+                })
+            });
+        });
+    </script>
+}
